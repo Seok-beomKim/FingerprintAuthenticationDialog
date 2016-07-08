@@ -1,4 +1,4 @@
-FingerprintAuthenticationDialog
+FingerprintDialog
 ===============================
 Fingerprint dialog library for Android. (Marshmallow or higher)
 
