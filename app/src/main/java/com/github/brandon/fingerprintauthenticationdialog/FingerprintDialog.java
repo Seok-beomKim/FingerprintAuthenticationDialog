@@ -125,7 +125,7 @@ public class FingerprintDialog extends DialogFragment implements FingerprintCall
             if(initCipher())
                 setCryptoObject();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | KeyStoreException | NoSuchPaddingException e) {
-            throw new RuntimeException("Failed at FingerprintAuthenticationDialog()", e);
+            throw new RuntimeException("Failed at FingerprintDialog()", e);
         }
     }
 
