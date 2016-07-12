@@ -1,14 +1,22 @@
 apply plugin: 'com.android.library'
-
+apply plugin: 'com.novoda.bintray-release'
+publish {
+    userOrg ='brandon'
+    groupId = 'salmon.tuna.brandon'
+    artifactId = 'fingerprint-authentication-dialog'
+    publishVersion = '1.0.2'
+    desc = 'Fingerprint Authentication Dialog for Android - It was inspired by iPhone Touch ID.'
+    website = 'https://github.com/Seok-beomKim/FingerprintAuthenticationDialog'
+    issueTracker = "${website}/issues"
+    repository = "${website}.git"
+}
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
 
     defaultConfig {
-        minSdkVersion 23
+        minSdkVersion 16
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
     }
     buildTypes {
         release {
@@ -16,6 +24,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    lintOptions {
+        abortOnError false
+    }
+
 }
 
 dependencies {

@@ -17,9 +17,11 @@
 package com.github.brandon.fingerprintauthenticationdialog;
 
 import android.Manifest;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
+import android.os.Build;
 import android.os.CancellationSignal;
 import android.support.v4.content.ContextCompat;
 import android.widget.ImageView;
@@ -28,6 +30,7 @@ import android.widget.TextView;
 /**
  * Small helper class to manage text/icon around fingerprint authentication UI.
  */
+@TargetApi(Build.VERSION_CODES.M)
 public class FingerprintUiHelper extends FingerprintManager.AuthenticationCallback {
 
     static final long ERROR_TIMEOUT_MILLIS = 1000;

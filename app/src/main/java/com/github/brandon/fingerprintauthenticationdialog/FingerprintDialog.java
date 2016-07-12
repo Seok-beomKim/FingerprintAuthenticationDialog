@@ -16,10 +16,13 @@
 
 package com.github.brandon.fingerprintauthenticationdialog;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.DialogFragment;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
@@ -50,7 +53,8 @@ import javax.crypto.SecretKey;
  * A dialog which uses fingerprint APIs to authenticate the user, and falls back to password
  * authentication if fingerprint is not available.
  */
-public class FingerprintAuthenticationDialog extends DialogFragment implements FingerprintCallback {
+@TargetApi(Build.VERSION_CODES.M)
+public class FingerprintDialog extends DialogFragment implements FingerprintCallback {
 
     private boolean isAvailable = false;
 
@@ -58,37 +62,67 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
     //    /** Alias for our key in the Android Key Store */
     private static final String KEY_NAME = "fingerprint_key";
 
-    private FingerprintCallback fingerprintCallback;
+    private FingerprintCallback mFingerprintCallback;
     private Button mCancelButton;
     private TextView mFingerprintContent;
 
-    private FingerprintManager fingerManager;
+    private FingerprintManager mFingerManager;
     private FingerprintManager.CryptoObject mCryptoObject;
     private FingerprintUiHelper mFingerprintUiHelper;
     private Activity mActivity;
-    private String title = "";
-    private String content = "";
+    private String mTitle = "";
+    private String mContent = "";
 
     private FingerprintUiHelper.FingerprintUiHelperBuilder mFingerprintUiHelperBuilder;
     private KeyStore mKeyStore;
     private KeyGenerator mKeyGenerator;
     private Cipher mCipher;
 
-    public void setOnFingerprintListener(FingerprintCallback fingerprintListener) {
-        this.fingerprintCallback = fingerprintListener;
+    public static class Builder {
+        private final FingerprintManager mFingerPrintManager;
+        private final FragmentManager mFragmentManager;
+        private FingerprintDialog mFingerprintDialog;
+
+        public Builder(Activity activity) {
+            mFragmentManager = activity.getFragmentManager();
+            mFingerPrintManager = (FingerprintManager) activity.getSystemService(Context.FINGERPRINT_SERVICE);
+        }
+
+        public void show() {
+            mFingerprintDialog.show(mFragmentManager, "FINGERPRINT_TAG");
+        }
+
+        public void dismiss() {
+            mFingerprintDialog.dismiss();
+        }
+
+        public FingerprintDialog build(String title, String content, FingerprintCallback fingerprintCallback) {
+            mFingerprintDialog = new FingerprintDialog();
+            mFingerprintDialog.setFingerManager(mFingerPrintManager);
+            mFingerprintDialog.setTitle(title);
+            mFingerprintDialog.setContent(content);
+            mFingerprintDialog.setCancelable(false);
+            mFingerprintDialog.setOnFingerprintListener(fingerprintCallback);
+            if(mFingerprintDialog.isAvailable())
+                return mFingerprintDialog;
+            else
+                return null;
+        }
     }
 
-    public FingerprintAuthenticationDialog() {
+    private void setOnFingerprintListener(FingerprintCallback fingerprintListener) {
+        this.mFingerprintCallback = fingerprintListener;
+    }
+
+    public FingerprintDialog() {
         try {
             mKeyGenerator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
             mKeyStore = KeyStore.getInstance("AndroidKeyStore");
             mCipher = Cipher.getInstance(KeyProperties.KEY_ALGORITHM_AES + "/"
                     + KeyProperties.BLOCK_MODE_CBC + "/"
                     + KeyProperties.ENCRYPTION_PADDING_PKCS7);
-
             createKey();
-            setAvailable(initCipher());
-            if(isAvailable())
+            if(initCipher())
                 setCryptoObject();
         } catch (NoSuchAlgorithmException | NoSuchProviderException | KeyStoreException | NoSuchPaddingException e) {
             throw new RuntimeException("Failed at FingerprintAuthenticationDialog()", e);
@@ -98,7 +132,7 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFingerprintUiHelperBuilder = new FingerprintUiHelper.FingerprintUiHelperBuilder(fingerManager);
+        mFingerprintUiHelperBuilder = new FingerprintUiHelper.FingerprintUiHelperBuilder(mFingerManager);
         // Do not create a new Fragment when the Activity is re-created such as orientation changes.
         setRetainInstance(true);
         setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Material_Light_Dialog);
@@ -106,7 +140,7 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        getDialog().setTitle(title);
+        getDialog().setTitle(mTitle);
         View v = inflater.inflate(R.layout.fingerprint_authentication_dialog, container, false);
         mCancelButton = (Button) v.findViewById(R.id.cancel_button);
         mCancelButton.setOnClickListener(new View.OnClickListener() {
@@ -117,7 +151,7 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
             }
         });
         mFingerprintContent = (TextView)v.findViewById(R.id.fingerprint_description);
-        mFingerprintContent.setText(content);
+        mFingerprintContent.setText(mContent);
         mFingerprintUiHelper = mFingerprintUiHelperBuilder.build(mActivity, (ImageView) v.findViewById(R.id.fingerprint_icon), (TextView) v.findViewById(R.id.fingerprint_status), this);
 
         return v;
@@ -147,13 +181,13 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
     public void onAuthenticated() {
         // Callback from FingerprintUiHelper. Let the activity know that authentication was
         // successful.
-        fingerprintCallback.onAuthenticated();
+        mFingerprintCallback.onAuthenticated();
         dismiss();
     }
 
     @Override
     public void onError(int msgId) {
-        fingerprintCallback.onError(msgId);
+        mFingerprintCallback.onError(msgId);
     }
 
     /**
@@ -169,6 +203,7 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
             mKeyStore.load(null);
             SecretKey key = (SecretKey) mKeyStore.getKey(KEY_NAME, null);
             mCipher.init(Cipher.ENCRYPT_MODE, key);
+            setAvailable(true);
             return true;
         } catch (KeyPermanentlyInvalidatedException e) {
             return false;
@@ -182,7 +217,8 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
      * Creates a symmetric key in the Android Key Store which can only be used after the user has
      * authenticated with fingerprint.
      */
-    public void createKey() {
+
+    private void createKey() {
         // The enrolling flow for fingerprint. This is where you ask the user to set up fingerprint
         // for your flow. Use of keys is necessary if you need to know if the set of
         // enrolled fingerprints has changed.
@@ -205,27 +241,27 @@ public class FingerprintAuthenticationDialog extends DialogFragment implements F
         }
     }
 
-    public void setCryptoObject() {
+    private void setCryptoObject() {
         mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
     }
 
-    public void setFingerManager(FingerprintManager fingerManager) {
-        this.fingerManager = fingerManager;
+    private void setFingerManager(FingerprintManager fingerManager) {
+        this.mFingerManager = fingerManager;
     }
 
-    public boolean isAvailable() {
+    private boolean isAvailable() {
         return isAvailable;
     }
 
-    public void setAvailable(boolean available) {
+    private void setAvailable(boolean available) {
         isAvailable = available;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    private void setTitle(String title) {
+        this.mTitle = title;
     }
 
-    public void setContent(String content) {
-        this.content = content;
+    private void setContent(String content) {
+        this.mContent = content;
     }
 }
