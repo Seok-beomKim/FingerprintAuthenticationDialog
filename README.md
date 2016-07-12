@@ -12,7 +12,7 @@ Fingerprint dialog library for Android. (Marshmallow or higher)
 2.build.gradle in app
 
 <pre>dependencies {
-    compile 'salmon.tuna.brandon:fingerprint-authentication-dialog:1.0.2'
+    compile 'salmon.tuna.brandon:fingerprint-authentication-dialog:1.0.3'
 }
 </pre>
 3.Your activity
