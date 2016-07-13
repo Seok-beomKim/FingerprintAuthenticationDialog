@@ -4,7 +4,7 @@ publish {
     userOrg ='brandon'
     groupId = 'salmon.tuna.brandon'
     artifactId = 'fingerprint-authentication-dialog'
-    publishVersion = '1.0.2'
+    publishVersion = '1.0.4'
     desc = 'Fingerprint Authentication Dialog for Android - It was inspired by iPhone Touch ID.'
     website = 'https://github.com/Seok-beomKim/FingerprintAuthenticationDialog'
     issueTracker = "${website}/issues"

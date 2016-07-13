@@ -34,7 +34,6 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
-            android:text="@string/fingerprint_description"
             android:textAppearance="@android:style/TextAppearance.Material.Subhead"
             android:textColor="?android:attr/textColorSecondary"/>
 
@@ -83,10 +82,8 @@
         <Button
             android:id="@+id/cancel_button"
             style="?android:attr/buttonBarNegativeButtonStyle"
-            android:text="@string/cancel"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="visible" />
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 

@@ -72,6 +72,7 @@ public class FingerprintDialog extends DialogFragment implements FingerprintCall
     private Activity mActivity;
     private String mTitle = "";
     private String mContent = "";
+    private String mCancel = "";
 
     private FingerprintUiHelper.FingerprintUiHelperBuilder mFingerprintUiHelperBuilder;
     private KeyStore mKeyStore;
@@ -86,6 +87,7 @@ public class FingerprintDialog extends DialogFragment implements FingerprintCall
         public Builder(Activity activity) {
             mFragmentManager = activity.getFragmentManager();
             mFingerPrintManager = (FingerprintManager) activity.getSystemService(Context.FINGERPRINT_SERVICE);
+            mFingerprintDialog = new FingerprintDialog();
         }
 
         public void show() {
@@ -96,8 +98,11 @@ public class FingerprintDialog extends DialogFragment implements FingerprintCall
             mFingerprintDialog.dismiss();
         }
 
+        public void setNegativeButton(String text) {
+            mFingerprintDialog.setCancel(text);
+        }
+
         public FingerprintDialog build(String title, String content, FingerprintCallback fingerprintCallback) {
-            mFingerprintDialog = new FingerprintDialog();
             mFingerprintDialog.setFingerManager(mFingerPrintManager);
             mFingerprintDialog.setTitle(title);
             mFingerprintDialog.setContent(content);
@@ -143,6 +148,7 @@ public class FingerprintDialog extends DialogFragment implements FingerprintCall
         getDialog().setTitle(mTitle);
         View v = inflater.inflate(R.layout.fingerprint_authentication_dialog, container, false);
         mCancelButton = (Button) v.findViewById(R.id.cancel_button);
+        mCancelButton.setText(mCancel);
         mCancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -263,5 +269,9 @@ public class FingerprintDialog extends DialogFragment implements FingerprintCall
 
     private void setContent(String content) {
         this.mContent = content;
+    }
+
+    public void setCancel(String cancel) {
+        this.mCancel = cancel;
     }
 }
